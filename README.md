@@ -18,14 +18,14 @@ The orchestration engine handles user requests through a stateful network, passi
 
 ## 🚀 Key Technical Challenges Solved
 
-### 1. State Mutability & Time-Travel Debugging
-During initial builds, graph execution risked state corruption due to inline dictionary modifications. I implemented deep-copying configurations within the graph nodes (`coder_state = deepcopy(state.get("coder_state"))`) to protect historical states, ensuring compatibility with LangGraph's native time-travel debugging feature.
+### 1. Robust State Isolation and Reduction
+Managed sequential workflow pipeline progression without mutating cross-node metadata or causing variable drift. By defining a strict `MasterGraphState` TypedDict schema mapping precise object instances (`Plan`, `Task`, and `dict[str, str]`), state context smoothly propagates linearly from `START` to `END` without data loss or graph interruptions.
 
-### 2. Schema Enforcement on Groq Open-Source Infrastructure
-Faced API schema execution dropouts (`BadRequestError: 400`) due to models defaulting to markdown lists rather than structured schemas when `tool_choice` or structured output was required. Resolved this by refactoring system prompts to strictly ban conversational formatting, enforcing raw JSON/Pydantic property matching.
+### 2. Strict Schema Enforcement on LLM Infrastructure
+Addressed potential structured parser validation breaks when using open-source models for multi-step tasks. Resolved this by chaining system configurations with `.with_structured_output()`, explicitly pairing strict system prompt constraints (banning markdown formatting, conversational filler, and empty boilerplate placeholders) directly with Pydantic class field descriptions.
 
-### 3. Eliminating Asset Hallucinations
-Prevented the standard LLM "ghost asset" pattern (where the coder guesses local image names or points to broken external placeholders). Built a custom programmatic image downloader tool (`download_stock_image`) linked to a public API gateway and taught the Architect to explicitly budget downloading phases before code creation.
+### 3. File System Sandbox Traversal Prevention
+Implemented secure execution layers for file mutations. Developed a centralized validation layer (`safe_path_for_project`) utilizing absolute path resolution and parent-relative tracking to prevent the agent from accidentally writing or reading files outside of the designated `generated_project/` folder path.
 
 ## 💻 Local Setup (Powered by UV)
 
